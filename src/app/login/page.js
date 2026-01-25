@@ -1,26 +1,53 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const router = useRouter();
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  useEffect(() => {
+    const student = localStorage.getItem("student");
+
+    if (student) {
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const login = async () => {
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      alert("Login successful");
-    } else {
-      alert(data.message);
+      if (res.ok && data.success) {
+        // 👇 LOGIN STATE SAVE
+        localStorage.setItem(
+          "student",
+          JSON.stringify(data.student)
+        );
+
+        alert("Login successful");
+        router.push("/dashboard");
+      } else {
+        alert(data.message || "Login failed");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Server error");
     }
   };
 
@@ -50,7 +77,18 @@ export default function LoginPage() {
         >
           Login
         </button>
+
+        <p className="text-sm mt-4 text-center">
+          New student?{" "}
+          <span
+            onClick={() => router.push("/")}
+            className="text-blue-600 cursor-pointer"
+          >
+            Register here
+          </span>
+        </p>
       </div>
     </div>
   );
 }
+

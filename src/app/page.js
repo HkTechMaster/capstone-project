@@ -1,9 +1,17 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
+  useEffect(() => {
+  const student = localStorage.getItem("student");
+
+  if (student) {
+    // 👇 Already logged in → dashboard
+    router.push("/dashboard");
+  }
+}, [router]);
 
   const [form, setForm] = useState({
     name: "",
@@ -25,7 +33,6 @@ const submitForm = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-
     const text = await res.text();        // 👈 SAFE READ
     const data = text ? JSON.parse(text) : {};
 
@@ -90,6 +97,17 @@ const submitForm = async () => {
         >
           Save Student
         </button>
+
+        <p className="text-sm mt-4 text-center">
+         Already have an account?{" "}
+         <span
+         onClick={() => router.push("/login")}
+         className="text-blue-600 cursor-pointer"
+      >
+        Login
+        </span>
+      </p>
+
       </div>
     </div>
   );
