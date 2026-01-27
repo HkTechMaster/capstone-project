@@ -50,6 +50,13 @@ export default function LoginPage() {
       alert("Server error");
     }
   };
+  return (
+  <div className="h-screen flex items-center justify-center">
+    <h2 className="text-xl font-bold text-red-600">
+      Login disabled until profile approval & CV verification
+    </h2>
+  </div>
+);
 
   return (
     <div className="h-screen flex items-center justify-center bg-gray-100">

@@ -5,48 +5,67 @@ import { useState, useEffect } from "react";
 export default function Home() {
   const router = useRouter();
   useEffect(() => {
-  const student = localStorage.getItem("student");
+    const student = localStorage.getItem("student");
 
-  if (student) {
-    // 👇 Already logged in → dashboard
-    router.push("/dashboard");
-  }
-}, [router]);
+    if (student) {
+      // 👇 Already logged in → dashboard
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const [form, setForm] = useState({
     name: "",
-    email: "",
-    password: "",
     rollNo: "",
+    course: "",
     department: "",
-    courses: "",
+    officialEmail: "",
+    photo: "",
   });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const handlePhoto = (file) => {
+    if (!file) return;
 
-const submitForm = async () => {
-  try {
-    const res = await fetch("/api/students", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const text = await res.text();        // 👈 SAFE READ
-    const data = text ? JSON.parse(text) : {};
+    const reader = new FileReader();
 
-    if (res.ok && data.success) {
-      alert("Student Registered Successfully");
-      router.push("/login");
-    } else {
-      alert(data.message || "Registration failed");
+    reader.onloadend = () => {
+      setForm((prev) => ({
+        ...prev,
+        photo: reader.result, // base64
+      }));
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+
+  const submitForm = async () => {
+    try {
+      const res = await fetch("/api/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        localStorage.setItem(
+          "studentEmail",
+          form.officialEmail
+        );
+
+        router.push("/status");
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Server error");
     }
-  } catch (error) {
-    console.error(error);
-    alert("Server error");
-  }
-};
+  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -55,41 +74,49 @@ const submitForm = async () => {
 
         <input
           name="name"
-          placeholder="Name"
+          placeholder="Full Name"
           className="border p-2 w-full mb-2"
           onChange={handleChange}
         />
+
         <input
-          name="email"
-          placeholder="Email"
+          name="officialEmail"
+          placeholder="Official University Email"
           className="border p-2 w-full mb-2"
           onChange={handleChange}
         />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          className="border p-2 w-full mb-2"
-          onChange={handleChange}
-        />
+
         <input
           name="rollNo"
-          placeholder="Roll No"
+          placeholder="Roll Number"
           className="border p-2 w-full mb-2"
           onChange={handleChange}
         />
+
         <input
           name="department"
           placeholder="Department"
-          className="border p-2 w-full mb-4"
+          className="border p-2 w-full mb-2"
           onChange={handleChange}
         />
+
         <input
-          name="courses"
-          placeholder="Courses"
-          className="border p-2 w-full mb-4"
+          name="course"
+          placeholder="Course / Program"
+          className="border p-2 w-full mb-2"
           onChange={handleChange}
         />
+
+        <label className="block mb-1 font-medium">Upload Photo</label>
+
+        <input
+          type="file"
+          accept="image/*"
+          className="border p-2 w-full mb-4"
+          onChange={(e) => handlePhoto(e.target.files[0])}
+        />
+
+
 
         <button
           onClick={submitForm}
@@ -99,14 +126,14 @@ const submitForm = async () => {
         </button>
 
         <p className="text-sm mt-4 text-center">
-         Already have an account?{" "}
-         <span
-         onClick={() => router.push("/login")}
-         className="text-blue-600 cursor-pointer"
-      >
-        Login
-        </span>
-      </p>
+          Already have an account?{" "}
+          <span
+            onClick={() => router.push("/login")}
+            className="text-blue-600 cursor-pointer"
+          >
+            Login
+          </span>
+        </p>
 
       </div>
     </div>
